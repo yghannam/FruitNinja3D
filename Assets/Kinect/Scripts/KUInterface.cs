@@ -232,7 +232,10 @@ public class KUInterface : MonoBehaviour {
 		
 		Vector3 rightFoot = GetJointPos(KinectWrapper.Joints.FOOT_RIGHT);
 		Vector3 leftFoot = GetJointPos (KinectWrapper.Joints.FOOT_LEFT);
+		Vector3 rightShoulder = GetJointPos (KinectWrapper.Joints.SHOULDER_RIGHT);
+		Vector3 leftShoulder = GetJointPos (KinectWrapper.Joints.SHOULDER_LEFT);
 		
+		// Forward/Backward Movement
 		Vector3 footDirection = rightFoot-leftFoot;
 		if(Vector3.Dot(-Vector3.forward, footDirection.normalized) > 0.8){
 			motor.inputMoveDirection = transform.rotation * Vector3.forward;	
@@ -243,6 +246,16 @@ public class KUInterface : MonoBehaviour {
 		else{
 			motor.inputMoveDirection = Vector3.zero;	
 		}
+		
+		// Turning Movement
+		Vector3 shoulderDirection = rightShoulder - leftShoulder;
+		if(Vector3.Dot(new Vector3(0.5f, 0 , -1), shoulderDirection.normalized) > 0.8){
+			transform.Rotate(0, -1.0f, 0);	
+		}
+		else if(Vector3.Dot(new Vector3(0.5f, 0 , 1), shoulderDirection.normalized) > 0.8){
+			transform.Rotate(0, 1.0f, 0);	
+		}
+		
     }
 
 
