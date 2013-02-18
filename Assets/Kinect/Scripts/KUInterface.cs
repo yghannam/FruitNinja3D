@@ -66,8 +66,15 @@ public class KUInterface : MonoBehaviour {
     private Texture2D depthImg;
     private byte[][] depth;
 	
+	// Project Variables
+	private bool started = false;
+	private bool savedData = false;
 	private CharacterMotor motor;
-
+	private Vector3 lastRightFoot;
+	private Vector3 lastLeftFoot;
+	private Vector3 baseFeetHeight;
+	private Vector3 baseHeadHeight;
+	
 /********************************************************************************
 *           USER METHODS -> Call these methods from your scripts
 * ******************************************************************************/
@@ -208,9 +215,9 @@ public class KUInterface : MonoBehaviour {
     private void OnApplicationQuit() {
 
         //if Unity is in editor mode, the Kinect sensor will remain active
-        if (!Application.isEditor) {
+        //if (!Application.isEditor) {
             KinectWrapper.NuiContextUnInit();
-        }
+        //}
     }
 
 
@@ -230,32 +237,50 @@ public class KUInterface : MonoBehaviour {
             UpdateDepth();
         }
 		
-		Vector3 rightFoot = GetJointPos(KinectWrapper.Joints.FOOT_RIGHT);
-		Vector3 leftFoot = GetJointPos (KinectWrapper.Joints.FOOT_LEFT);
-		Vector3 rightShoulder = GetJointPos (KinectWrapper.Joints.SHOULDER_RIGHT);
-		Vector3 leftShoulder = GetJointPos (KinectWrapper.Joints.SHOULDER_LEFT);
-		
-		// Forward/Backward Movement
-		Vector3 footDirection = rightFoot-leftFoot;
-		if(Vector3.Dot(-Vector3.forward, footDirection.normalized) > 0.8){
-			motor.inputMoveDirection = transform.rotation * Vector3.forward;	
+		if(started){
+			
+			Vector3 rightFoot = GetJointPos(KinectWrapper.Joints.FOOT_RIGHT);
+			Vector3 leftFoot = GetJointPos (KinectWrapper.Joints.FOOT_LEFT);
+			Vector3 rightShoulder = GetJointPos (KinectWrapper.Joints.SHOULDER_RIGHT);
+			Vector3 leftShoulder = GetJointPos (KinectWrapper.Joints.SHOULDER_LEFT);
+			
+			// Save initial feet and shoulder height for use in jump and duck
+			if(!savedData){
+				baseFeetHeight = rightFoot;
+				baseHeadHeight = rightShoulder;
+				savedData = true;
+			}
+			
+			// Forward/Backward Movement
+			Vector3 footDirection = rightFoot-leftFoot;
+			if(Vector3.Dot(-Vector3.forward, footDirection.normalized) > 0.8){
+				motor.inputMoveDirection = transform.rotation * Vector3.forward;	
+			}
+			else if(Vector3.Dot(Vector3.forward, footDirection.normalized) > 0.8){
+				motor.inputMoveDirection = transform.rotation * -Vector3.forward;	
+			}
+			else{
+				motor.inputMoveDirection = Vector3.zero;	
+			}
+			
+			// Turning Movement
+			Vector3 shoulderDirection = rightShoulder - leftShoulder;
+			if(Vector3.Dot(new Vector3(0.5f, 0 , -1), shoulderDirection.normalized) > 0.8){
+				transform.Rotate(0, -1.0f, 0);	
+			}
+			else if(Vector3.Dot(new Vector3(0.5f, 0 , 1), shoulderDirection.normalized) > 0.8){
+				transform.Rotate(0, 1.0f, 0);	
+			}
+			
+			// Jump and Duck Movement
+			Debug.Log((rightFoot-baseFeetHeight).y);
+			motor.inputJump = ((rightFoot-lastRightFoot).y > 5.0f && (leftFoot-lastLeftFoot).y > 5.0f);	
+			lastRightFoot = rightFoot;
+			lastLeftFoot = leftFoot;
 		}
-		else if(Vector3.Dot(Vector3.forward, footDirection.normalized) > 0.8){
-			motor.inputMoveDirection = transform.rotation * -Vector3.forward;	
+		else if(Vector3.Dot(Vector3.right, (GetJointPos(KinectWrapper.Joints.HAND_RIGHT) - GetJointPos(KinectWrapper.Joints.HEAD)).normalized) > 0.8){
+			started = true;
 		}
-		else{
-			motor.inputMoveDirection = Vector3.zero;	
-		}
-		
-		// Turning Movement
-		Vector3 shoulderDirection = rightShoulder - leftShoulder;
-		if(Vector3.Dot(new Vector3(0.5f, 0 , -1), shoulderDirection.normalized) > 0.8){
-			transform.Rotate(0, -1.0f, 0);	
-		}
-		else if(Vector3.Dot(new Vector3(0.5f, 0 , 1), shoulderDirection.normalized) > 0.8){
-			transform.Rotate(0, 1.0f, 0);	
-		}
-		
     }
 
 
