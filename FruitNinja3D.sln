@@ -7,8 +7,6 @@ Project("{B2AEE1F5-D41A-A390-25FE-20E9C067ACF7}") = "FruitNinja3D", "Assembly-CS
 EndProject
 Project("{B2AEE1F5-D41A-A390-25FE-20E9C067ACF7}") = "FruitNinja3D", "Assembly-UnityScript-firstpass.unityproj", "{0FA0FC21-E484-37B8-2058-E8315B785BA7}"
 EndProject
-Project("{B2AEE1F5-D41A-A390-25FE-20E9C067ACF7}") = "FruitNinja3D", "Assembly-UnityScript.unityproj", "{041909B8-7EF4-F267-BF53-6D76672D406E}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,15 +25,11 @@ Global
 		{0FA0FC21-E484-37B8-2058-E8315B785BA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0FA0FC21-E484-37B8-2058-E8315B785BA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0FA0FC21-E484-37B8-2058-E8315B785BA7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{041909B8-7EF4-F267-BF53-6D76672D406E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{041909B8-7EF4-F267-BF53-6D76672D406E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{041909B8-7EF4-F267-BF53-6D76672D406E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{041909B8-7EF4-F267-BF53-6D76672D406E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
-						GlobalSection(MonoDevelopProperties) = preSolution
+																																GlobalSection(MonoDevelopProperties) = preSolution
 		StartupItem = Assembly-CSharp.csproj
 		Policies = $0
 		$0.TextStylePolicy = $1

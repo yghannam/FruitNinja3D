@@ -18,6 +18,11 @@ var inputMoveDirection : Vector3 = Vector3.zero;
 // for the jump button directly so this script can also be used by AIs.
 @System.NonSerialized
 var inputJump : boolean = false;
+@System.NonSerialized
+var inputCrouch : boolean = false;
+@System.NonSerialized
+var inputFly : boolean = false;
+
 
 class CharacterMotorMovement {
 	// The maximum horizontal speed when moving
@@ -181,6 +186,27 @@ function Awake () {
 }
 
 private function UpdateFunction () {
+
+	if(inputCrouch){
+		transform.localScale = Vector3(1, 0.5, 1);
+		transform.position.y = Mathf.Max(transform.position.y, 0.5);
+	}
+	else if(inputFly){
+		transform.localScale = Vector3(1, 1, 1);
+		if(transform.position.y < 30.0f - Time.deltaTime)
+			transform.Translate(Vector3.up * 30.0f * Time.deltaTime);
+		else// if(transform.position.y >= 30.0f)
+			transform.position.y = 30.0f;
+	}
+	else{
+		transform.localScale = Vector3(1, 1, 1);
+		transform.position.y = Mathf.Max(transform.position.y, 1.0);
+	}
+
+//	Debug.Log("Scale: "+transform.localScale);
+//	Debug.Log("Position: "+transform.position);
+
+	
 	// We copy the actual velocity into a temporary variable that we can manipulate.
 	var velocity : Vector3 = movement.velocity;
 	
@@ -244,6 +270,9 @@ private function UpdateFunction () {
 	var oldHVelocity : Vector3 = new Vector3(velocity.x, 0, velocity.z);
 	movement.velocity = (tr.position - lastPosition) / Time.deltaTime;
 	var newHVelocity : Vector3 = new Vector3(movement.velocity.x, 0, movement.velocity.z);
+		
+	//if(inputFly)
+		newHVelocity *= 3.0f;
 	
 	// The CharacterController can be moved in unwanted directions when colliding with things.
 	// We want to prevent this from influencing the recorded velocity.
@@ -306,6 +335,23 @@ private function UpdateFunction () {
         movingPlatform.activeGlobalRotation = tr.rotation;
         movingPlatform.activeLocalRotation = Quaternion.Inverse(movingPlatform.activePlatform.rotation) * movingPlatform.activeGlobalRotation; 
 	}
+	
+	if(inputCrouch){
+		transform.localScale = Vector3(1, 0.5, 1);
+		transform.position.y = Mathf.Max(transform.position.y, 0.5);
+	}
+	else if(inputFly){
+		transform.localScale = Vector3(1, 1, 1);
+		if(transform.position.y < 30.0f - Time.deltaTime)
+			transform.Translate(Vector3.up * 30.0f * Time.deltaTime);
+		else// if(transform.position.y >= 30.0f)
+			transform.position.y = 30.0f;
+	}
+	else{
+		transform.localScale = Vector3(1, 1, 1);
+		transform.position.y = Mathf.Max(transform.position.y, 1.0);
+	}
+
 }
 
 function FixedUpdate () {

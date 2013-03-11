@@ -1,8 +1,13 @@
+
+private var GUIDisplay : GameObject;
+private var Player : GameObject;
 private var motor : CharacterMotor;
 
 // Use this for initialization
 function Awake () {
 	motor = GetComponent(CharacterMotor);
+	GUIDisplay = GameObject.Find("GUIDisplay");
+	Player = GameObject.FindGameObjectWithTag("Player");
 }
 
 // Update is called once per frame
@@ -28,8 +33,32 @@ function Update () {
 	}
 	
 	// Apply the direction to the CharacterMotor
-	motor.inputMoveDirection = transform.rotation * directionVector;
+	
 	motor.inputJump = Input.GetButton("Jump");
+	motor.inputCrouch = Input.GetButton("Crouch");
+	
+	//Debug.Log(Player.GetComponent("EnergySystem").ReturnEnergy());
+	if (Input.GetButton("Fly") && Player.GetComponent("EnergySystem").ReturnEnergy() > 0.0f){
+		motor.inputFly = true;
+		Player.SendMessage("DecreaseEnergy", Time.deltaTime);
+		motor.inputMoveDirection = transform.rotation * directionVector * 5.0f;
+	}
+	else{
+		motor.inputFly = false;
+		motor.inputMoveDirection = transform.rotation * directionVector;
+	}
+	
+	if(Input.GetKeyUp("m"))
+		GameObject.Find("MinimapCamera").SendMessage("ChangeMapSize");
+		
+	if(Input.GetKeyUp("1"))
+		GUIDisplay.SendMessage("ChangeWeapon", 1);
+		
+	if(Input.GetKeyUp("2"))
+		GUIDisplay.SendMessage("ChangeWeapon", 2);
+		
+	if(Input.GetKeyUp("3"))
+		GUIDisplay.SendMessage("ChangeWeapon", 3);
 }
 
 // Require a character controller to be attached to the same game object

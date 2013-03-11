@@ -74,6 +74,11 @@ public class KUInterface : MonoBehaviour {
 	private Vector3 lastLeftFoot;
 	private Vector3 baseFeetHeight;
 	private Vector3 baseHeadHeight;
+	private Vector3 lastSpine;
+	private Vector3 lastShoulder;
+	private GameObject Player;
+	private float speedup = 1.0f;
+	private float energy;
 	
 /********************************************************************************
 *           USER METHODS -> Call these methods from your scripts
@@ -207,6 +212,7 @@ public class KUInterface : MonoBehaviour {
             displayDepthImage = false;
         }
 		
+		Player = GameObject.FindGameObjectWithTag("Player");
 		motor = GetComponent<CharacterMotor>();
     }
 
@@ -219,7 +225,10 @@ public class KUInterface : MonoBehaviour {
             KinectWrapper.NuiContextUnInit();
         //}
     }
-
+	
+	void UpdateEnergy(float e){
+		energy = e;
+	}
 
     //called every Unity frame (frame-rate dependent)
     private void Update() {
@@ -237,27 +246,49 @@ public class KUInterface : MonoBehaviour {
             UpdateDepth();
         }
 		
+		//Debug.Log (energy);//gameObject.PrintHello();
+		
 		if(started){
 			
+			Vector3 rightHand = GetJointPos(KinectWrapper.Joints.HAND_RIGHT);
+			Vector3 leftHand = GetJointPos(KinectWrapper.Joints.HAND_LEFT);
 			Vector3 rightFoot = GetJointPos(KinectWrapper.Joints.FOOT_RIGHT);
 			Vector3 leftFoot = GetJointPos (KinectWrapper.Joints.FOOT_LEFT);
+			Vector3	rightAnkle = GetJointPos (KinectWrapper.Joints.ANKLE_RIGHT);
+			Vector3 leftAnkle = GetJointPos (KinectWrapper.Joints.ANKLE_LEFT);
 			Vector3 rightShoulder = GetJointPos (KinectWrapper.Joints.SHOULDER_RIGHT);
 			Vector3 leftShoulder = GetJointPos (KinectWrapper.Joints.SHOULDER_LEFT);
+			Vector3 head = GetJointPos(KinectWrapper.Joints.HEAD);
 			
 			// Save initial feet and shoulder height for use in jump and duck
 			if(!savedData){
 				baseFeetHeight = rightFoot;
 				baseHeadHeight = rightShoulder;
+				lastSpine = GetJointPos(KinectWrapper.Joints.SPINE);
+				lastShoulder = GetJointPos(KinectWrapper.Joints.SHOULDER_CENTER);
 				savedData = true;
+			}
+			
+			// Flying Movement
+			
+			bool flying = Mathf.Abs((rightHand-rightShoulder).normalized.y) < 0.5f && Mathf.Abs((leftHand-leftShoulder).normalized.y) < 0.5f;//(Vector3.Dot(Vector3.right, (rightHand-rightShoulder).normalized) > 0.8f) && (Vector3.Dot(-Vector3.right, (leftHand-leftShoulder).normalized) > 0.8f);
+			if (flying && energy > 0.0f){
+				motor.inputFly = true;
+				Player.SendMessage("DecreaseEnergy", Time.deltaTime);
+				speedup = 5.0f;
+			}
+			else{
+				motor.inputFly = false;
+				speedup = 1.0f;
 			}
 			
 			// Forward/Backward Movement
 			Vector3 footDirection = rightFoot-leftFoot;
-			if(Vector3.Dot(-Vector3.forward, footDirection.normalized) > 0.8){
-				motor.inputMoveDirection = transform.rotation * Vector3.forward;	
+			if(Vector3.Dot(-Vector3.forward, footDirection.normalized) > 0.5){
+				motor.inputMoveDirection = transform.rotation * Vector3.forward * speedup;	
 			}
-			else if(Vector3.Dot(Vector3.forward, footDirection.normalized) > 0.8){
-				motor.inputMoveDirection = transform.rotation * -Vector3.forward;	
+			else if(Vector3.Dot(Vector3.forward, footDirection.normalized) > 0.5){
+				motor.inputMoveDirection = transform.rotation * -Vector3.forward * speedup;	
 			}
 			else{
 				motor.inputMoveDirection = Vector3.zero;	
@@ -272,11 +303,19 @@ public class KUInterface : MonoBehaviour {
 				transform.Rotate(0, 1.0f, 0);	
 			}
 			
-			// Jump and Duck Movement
-			Debug.Log((rightFoot-baseFeetHeight).y);
-			motor.inputJump = ((rightFoot-lastRightFoot).y > 5.0f && (leftFoot-lastLeftFoot).y > 5.0f);	
-			lastRightFoot = rightFoot;
-			lastLeftFoot = leftFoot;
+			// Crouch Movement
+			motor.inputCrouch = head.y < lastShoulder.y;
+			
+			// Jump Movement
+			//Debug.Log("right "+Vector3.Dot(Vector3.up, (rightAnkle - rightFoot).normalized));
+			//Debug.Log ("left "+Vector3.Dot(Vector3.up, (leftAnkle - leftFoot).normalized) );
+			//motor.inputJump = /*Vector3.Dot(Vector3.up, (rightAnkle - rightFoot).normalized) > 0.8f
+			//					&&*/ Vector3.Dot(Vector3.up, (leftAnkle - leftFoot).normalized) > 0.8f;
+			Debug.Log(rightFoot.y - leftFoot.y);
+			motor.inputJump = rightFoot.y - leftFoot.y > 100.0f;
+			//lastRightFoot = rightFoot;
+			//lastLeftFoot = leftFoot;
+			//lastSpine = GetJointPos(KinectWrapper.Joints.SPINE);
 		}
 		else if(Vector3.Dot(Vector3.right, (GetJointPos(KinectWrapper.Joints.HAND_RIGHT) - GetJointPos(KinectWrapper.Joints.HEAD)).normalized) > 0.8){
 			started = true;
